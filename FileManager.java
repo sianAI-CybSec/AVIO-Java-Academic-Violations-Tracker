@@ -10,13 +10,6 @@ import java.util.List;
  */
 public class FileManager {
 
-    /**
-     * Saves a list of Student objects to a CSV file.
-     *
-     * @param filePath Target file path.
-     * @param students List of Student instances to export.
-     * @return True if save operation succeeded; false otherwise.
-     */
     public static boolean saveStudents(String filePath, List<Student> students) {
         ensureDirectoryExists(filePath);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
@@ -33,12 +26,6 @@ public class FileManager {
         }
     }
 
-    /**
-     * Loads student records from a specified CSV file.
-     *
-     * @param filePath Path to students CSV file.
-     * @return List of parsed Student objects.
-     */
     public static List<Student> loadStudents(String filePath) {
         List<Student> students = new ArrayList<>();
         File file = new File(filePath);
@@ -60,13 +47,6 @@ public class FileManager {
         return students;
     }
 
-    /**
-     * Saves a list of ViolationCase objects to a semicolon-delimited CSV file.
-     *
-     * @param filePath Path to output file.
-     * @param cases    List of ViolationCase objects.
-     * @return True if successful, false otherwise.
-     */
     public static boolean saveCases(String filePath, List<ViolationCase> cases) {
         ensureDirectoryExists(filePath);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
@@ -83,13 +63,6 @@ public class FileManager {
         }
     }
 
-    /**
-     * Loads violation cases from a CSV file, referencing a list of existing students.
-     *
-     * @param filePath Path to cases data file.
-     * @param students List of students used to match student IDs with Student instances.
-     * @return List of parsed ViolationCase objects.
-     */
     public static List<ViolationCase> loadCases(String filePath, List<Student> students) {
         List<ViolationCase> cases = new ArrayList<>();
         File file = new File(filePath);
@@ -135,9 +108,6 @@ public class FileManager {
         return cases;
     }
 
-    /**
-     * Helper method to parse encoded violation details from stored line format.
-     */
     private static Violation parseViolation(String rawData) {
         String[] tokens = rawData.split(",");
         if (tokens.length < 5) return null;
@@ -158,9 +128,6 @@ public class FileManager {
         return null;
     }
 
-    /**
-     * Finds a student by ID from a given student list.
-     */
     private static Student findStudentById(List<Student> students, String studentId) {
         for (Student s : students) {
             if (s.getStudentId().equalsIgnoreCase(studentId)) {
@@ -170,9 +137,6 @@ public class FileManager {
         return null;
     }
 
-    /**
-     * Ensures parent directory exists before creating/writing files.
-     */
     private static void ensureDirectoryExists(String filePath) {
         File file = new File(filePath);
         File parentDir = file.getParentFile();
