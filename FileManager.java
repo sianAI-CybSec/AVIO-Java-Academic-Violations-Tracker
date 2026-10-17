@@ -83,4 +83,12 @@ public class FileManager {
             System.out.println("Error saving cases: " + e.getMessage());
         }
     }
+
+    public String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
 }
