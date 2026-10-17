@@ -1,98 +1,115 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+/**
+  Represents an individual case tracking an academic integrity incident.
+  Combines a Student, a specific Violation, an assigned Sanction, and case data.
+ */
 public class ViolationCase {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+
     private String caseId;
     private Student student;
     private Violation violation;
+    private LocalDate incidentDate;
     private Sanction sanction;
-    private String status;
-    private String dateReported;
-    private String evidenceNotes;
-    private String remarks;
+    private boolean resolved;
 
-    public ViolationCase(
-        String caseId, Student student, Violation violation,
-        Sanction sanction, String status, String dateReported,
-        String evidenceNotes, String remarks
-    ){
+    /* Default Constructor.*/
+    public ViolationCase() {
+        this.caseId = "";
+        this.student = null;
+        this.violation = null;
+        this.incidentDate = LocalDate.now();
+        this.sanction = Sanction.WRITTEN_WARNING;
+        this.resolved = false;
+    }
+
+    /**
+     Parameterized Constructor.
+     @param caseId       Unique case code.
+     @param student      Student associated with case.
+     @param violation    Violation object.
+     @param incidentDate Date of incident.
+     @param sanction     Assigned Sanction.
+     @param resolved     Resolution status.
+     */
+    public ViolationCase(String caseId, Student student, Violation violation,
+                         LocalDate incidentDate, Sanction sanction, boolean resolved) {
         this.caseId = caseId;
         this.student = student;
         this.violation = violation;
+        this.incidentDate = incidentDate;
         this.sanction = sanction;
-        this.status = status;
-        this.dateReported = dateReported;
-        this.evidenceNotes = evidenceNotes;
-        this.remarks = remarks;
+        this.resolved = resolved;
     }
 
-    // getter and setter methods
-    public String getCaseId(){return caseId;}
-    public Student getStudent(){return student;}
-    public Violation getViolation(){return violation;}
-    public Sanction getSanction(){return sanction;}
-    public void setSanction(Sanction s){sanction = s;}
-    public String getStatus(){return status;}
-    public void setStatus(String stat){status = stat;}
-    public String getEvidenceNotes(){return evidenceNotes;}
-    public void setEvidenceNotes(String en){evidenceNotes = en;}
-
-    public void resolve(Sanction sanctionObj, String remString){
-        if (sanctionObj == null){
-            throw new IllegalArgumentException("A sanction must be provided for the violation case.");
-        }
-        if (status.equalsIgnoreCase("RESOLVED")){
-            throw new IllegalStateException(String.format("Case %s is already resolved.",caseId));
-        }
-        if (status.equalsIgnoreCase("ARCHIVED")){
-            throw new IllegalStateException(String.format("Case %s is archived and cannot be edited.",caseId));
-        }
-        this.sanction = sanctionObj;
-        this.remarks = (remarks == null) ? "" : remarks.trim();
-        this.status = "RESOLVED";
+    public String getCaseId() {
+        return caseId;
     }
 
-    public String toCSV(){
-        String sanctionPart;
-        if (sanction == null){
-            sanctionPart = ", ,";
-        } else {
-            sanctionPart = sanction.toCSV();
-        }
+    public void setCaseId(String caseId) {
+        this.caseId = caseId;
+    }
 
-        FileManager fm = new FileManager();
+    public Student getStudent() {
+        return student;
+    }
 
-        String csvResult = fm.escapeCsv(caseId) + ","
-         + fm.escapeCsv(student.getStudentId()) + ","
-         + violation.toCSV() + ","         
-         + fm.escapeCsv(status) + ","
-         + dateReported + ","
-         + fm.escapeCsv(evidenceNotes) + ","
-         + sanctionPart + ","
-         + fm.escapeCsv(remarks);
+    public void setStudent(Student student) {
+        this.student = student;
+    }
 
-         return csvResult;
+    public Violation getViolation() {
+        return violation;
+    }
+
+    public void setViolation(Violation violation) {
+        this.violation = violation;
+    }
+
+    public LocalDate getIncidentDate() {
+        return incidentDate;
+    }
+
+    public void setIncidentDate(LocalDate incidentDate) {
+        this.incidentDate = incidentDate;
+    }
+
+    public Sanction getSanction() {
+        return sanction;
+    }
+
+    public void setSanction(Sanction sanction) {
+        this.sanction = sanction;
+    }
+
+    public boolean isResolved() {
+        return resolved;
+    }
+
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
+    }
+
+    public String toCSV() {
+        String studentId = (student != null) ? student.getStudentId() : "UNKNOWN";
+        String violationCSV = (violation != null) ? violation.toCSV() : "NONE";
+        String dateStr = (incidentDate != null) ? incidentDate.format(DATE_FORMATTER) : LocalDate.now().format(DATE_FORMATTER);
+        String sanctionStr = (sanction != null) ? sanction.name() : Sanction.WRITTEN_WARNING.name();
+
+        return String.format("%s;%s;%s;%s;%s;%b",
+                caseId, studentId, violationCSV, dateStr, sanctionStr, resolved);
     }
 
     @Override
     public String toString() {
-        StringBuilder vioCaseStr = new StringBuilder();
+        String studentName = (student != null) ? student.getName() : "Unknown Student";
+        String violTitle = (violation != null) ? violation.getTitle() : "No Violation Assigned";
+        int severity = (violation != null) ? violation.calculateSeverityLevel() : 0;
+        String sanctionText = (sanction != null) ? sanction.getLabel() : "None";
 
-        vioCaseStr.append("Case ID        : ").append(caseId).append("\n");
-        vioCaseStr.append("Student        : ").append(student.getName()).append(" (").append(student.getStudentId()).append(")\n");
-        vioCaseStr.append("Violation      : ").append(violation.getViolationCode()).append(" - ").append(violation.getDescription()).append("\n");
-        vioCaseStr.append("Date of Violation: ").append(violation.getDateOfViolation()).append("\n");
-        vioCaseStr.append("Subject        : ").append(violation.getSubject()).append("\n");
-        vioCaseStr.append("Date Reported  : ").append(dateReported).append("\n");
-        vioCaseStr.append("Status         : ").append(status).append("\n");
-        vioCaseStr.append("Evidence Notes : ").append(evidenceNotes == null || evidenceNotes.isEmpty() ? "None recorded" : evidenceNotes).append("\n");
-
-        if (sanction != null) {
-            vioCaseStr.append("Sanction       : ").append(sanction).append("\n"); 
-        } else {
-            vioCaseStr.append("Sanction       : Sanction not recorded\n");
-        }
-
-        vioCaseStr.append("Remarks        : ").append(remarks == null || remarks.isEmpty() ? "None" : remarks);
-
-        return vioCaseStr.toString();
+        return String.format("Case ID: %s | Student: %s | Violation: %s | Severity: %d | Sanction: %s | Date: %s | Resolved: %s",
+                caseId, studentName, violTitle, severity, sanctionText, incidentDate, resolved ? "Yes" : "No");
     }
-
 }

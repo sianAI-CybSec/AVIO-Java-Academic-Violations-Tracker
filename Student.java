@@ -1,110 +1,81 @@
+
+/**
+ * Represents a student in the AVIO Academic Violations Tracker.
+ * Stores student demographic and identification data such as ID, name, email, and department.
+ * 
+ * Demonstrates Object-Oriented Programming (OOP) Encapsulation by keeping fields private
+ * and providing controlled access via public getters and setters.
+ */
 public class Student {
     private String studentId;
     private String name;
-    private String program;
-    private String hauEmail;
-    private String schoolYear;
-    private String dateOfBirth;
-    private String guardianName;
-    private String guardianPhoneNumber;
+    private String email;
+    private String department;
 
-    public Student(String studentId, String name, String program, String hauEmail, String schoolYear, String dateOfBirth, String guardianName, String guardianPhoneNumber) {
+    public Student() {
+        this.studentId = "";
+        this.name = "";
+        this.email = "";
+        this.department = "";
+    }
+
+    public Student(String studentId, String name, String email, String department) {
         this.studentId = studentId;
         this.name = name;
-        this.program = program;
-        this.hauEmail = hauEmail;
-        this.schoolYear = schoolYear;
-        this.dateOfBirth = dateOfBirth;
-        this.guardianName = guardianName;
-        this.guardianPhoneNumber = guardianPhoneNumber;
+        this.email = email;
+        this.department = department;
     }
 
-    public String toString() {
-        return "Student ID: " + studentId + "\nStudent Name: " + name +
-                "Program: " + program + "\nEmail: " + hauEmail +
-                "School Year: " + schoolYear + "\nDate of Birth: " + dateOfBirth +
-                "Guardian Name: " + guardianName + "\nGuardian Phone Number: " + guardianPhoneNumber;
-    }
-
-    public String toCSV() {
-        return String.join(",", studentId, name, program, hauEmail, schoolYear, dateOfBirth, guardianName, guardianPhoneNumber);
-    }
-
-    public static Student fromCSV(String line) {
-        String[] data = line.split(",", -1);
-
-        if (data.length >= 8) {
-            return new Student(data[0].trim(), data[1].trim(), data[2].trim(), data[3].trim(), data[4].trim(), data[5].trim(), data[6].trim(), data[7].trim());
-        }
-
-        throw new IllegalArgumentException("Invalid CSV Line for Student: " + line);
-    }
-
-
-    // Getters for Student Fields stuffz
     public String getStudentId() {
         return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getProgram() {
-        return program;
-    }
-
-    public String getHauEmail() {
-        return hauEmail;
-    }
-
-    public String getSchoolYear() {
-        return schoolYear;
-    }
-    
-    public String getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public String getGuardianName() {
-        return guardianName;
-    }
-
-    public String getGuardianPhoneNumber() {
-        return guardianPhoneNumber;
-    }
-
-
-    // Student Fields Setters
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
-    }
-    
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setProgram(String program) {
-        this.program = program;
+    public String getEmail() {
+        return email;
     }
 
-    public void setHauEmail(String hauEmail) {
-        this.hauEmail = hauEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public void setSchoolYear(String schoolYear) {
-        this.schoolYear = schoolYear;
+    public String getDepartment() {
+        return department;
     }
 
-    public void setDateOfBirth(String dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
+    public void setDepartment(String department) {
+        this.department = department;
     }
 
-    public void setGuardianName(String guardianName) {
-        this.guardianName = guardianName;
+    public String toCSV() {
+        return String.format("%s,%s,%s,%s", studentId, name, email, department);
     }
 
-    public void setGuardianPhoneNumber(String guardianPhoneNumber) {
-        this.guardianPhoneNumber = guardianPhoneNumber;
+    public static Student fromCSV(String csvLine) {
+        if (csvLine == null || csvLine.trim().isEmpty()) {
+            return null;
+        }
+        String[] parts = csvLine.split(",");
+        if (parts.length < 4) {
+            return null;
+        }
+        return new Student(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Student ID: %s | Name: %s | Email: %s | Department: %s",
+                studentId, name, email, department);
     }
 }

@@ -1,28 +1,34 @@
-public class Sanction {
-    private String sanctionType;
-    private String dateImposed;
-    private String details;
+public enum Sanction {
+    // Sanction Constants
+    VERBAL_REPRIMAND("Verbal Reprimand"),
+    WRITTEN_WARNING("Written Warning"),
+    WRITTEN_APOLOGY("Written Apology"),
+    UNDERTAKING("Undertaking"),
+    COMMUNITY_SERVICE("Community Service"),
+    SUSPENSION("Suspension"),
+    EXCLUSION("Exclusion"),
+    EXPULSION("Expulsion");
 
-    public Sanction(String sanctionType, String dateImposed, String details){
-        this.sanctionType = sanctionType;
-        this.dateImposed = dateImposed;
-        this.details = details;
+    /* readable display label for the sanction. */
+    private final String label;
+
+    Sanction(String label) {
+        this.label = label;
     }
 
-    public String getSanctionType(){return sanctionType;}
-    public String getDateImposed(){return dateImposed;}
-    public String getDetails(){return details;}
-
-    public String toCSV(){
-        FileManager fm = new FileManager();
-        String csvResult = sanctionType + "," + dateImposed + "," + fm.escapeCsv(details);
-        return csvResult;
+    public String getLabel() {
+        return label;
     }
 
-    public String toString(){
-        String sanctionStr = String.format(
-            "Sanction: %s\nDate Imposed: %s\nDetails: %s\n",sanctionType,dateImposed,details
-        );
-        return sanctionStr;
+    public static Sanction fromString(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return WRITTEN_WARNING;
+        }
+        for (Sanction s : Sanction.values()) {
+            if (s.name().equalsIgnoreCase(text.trim()) || s.label.equalsIgnoreCase(text.trim())) {
+                return s;
+            }
+        }
+        return WRITTEN_WARNING;
     }
 }
