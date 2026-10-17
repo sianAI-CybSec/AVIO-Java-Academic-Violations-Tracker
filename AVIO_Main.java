@@ -181,6 +181,14 @@ public class AVIO_Main {
                 System.out.println("Total Recorded Cases: " + tracker.getTotalCases());
 
             } else if (choice.equals("8")) {
+                System.out.println("===== Displaying Student Files =====");
+                tracker.displayStudentFiles();
+
+            } else if (choice.equals("9")) {
+                System.out.println("===== Displaying Violation Cases =====");
+                tracker.displayViolationCases();
+
+            } else if (choice.equals("10")) {
                 running = false;
                 System.out.println("Exiting system...");
                 System.out.println("Laus Deo Semper!");
@@ -202,7 +210,9 @@ public class AVIO_Main {
         System.out.println("5. Search Cases by Status");
         System.out.println("6. Delete Violation Case");
         System.out.println("7. View Total Cases");
-        System.out.println("8. Exit");
+        System.out.println("8. Display All Student Files");
+        System.out.println("9. Display All Violation Cases");
+        System.out.println("10. Exit");
         System.out.println("==========================================");
     }
 }

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.io.*;
 
 /**
  * Handles operations on students and violation cases.
@@ -91,6 +92,44 @@ public class ViolationTracker {
 
     public int getTotalCases() {
         return cases.size();
+    }
+
+    public void displayStudentFiles(){
+        String studentCSV = "DATA/students.csv";
+        String line = "";
+        String separator = ",";
+
+        try (BufferedReader br = new BufferedReader(new FileReader(studentCSV))){
+            while ((line = br.readLine()) != null){
+                String[] information = line.split(separator);
+                for (String info : information){
+                    System.out.print(info + " | ");
+                }
+                System.out.println();
+            }
+        } catch (IOException e){
+            System.out.println("[!] Student records file not found.");
+            e.printStackTrace();
+        }
+    }
+
+    public void displayViolationCases(){
+        String violationsCSV = "DATA/cases.csv";
+        String line = "";
+        String separator = ",|;";
+
+        try(BufferedReader br = new BufferedReader(new FileReader(violationsCSV))){
+            while((line = br.readLine()) != null){
+                String[] violations = line.split(separator);
+                for (String vioCase : violations){
+                    System.out.print(vioCase + " | ");
+                }
+                System.out.println();
+            }
+        } catch (IOException e){
+            System.out.println("[!] Student records file not found.");
+            e.printStackTrace();
+        }
     }
 
     public boolean isValidViolationCode(String code) {
