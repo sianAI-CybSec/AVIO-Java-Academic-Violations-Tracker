@@ -1,58 +1,40 @@
+/**
+ * Class representing academic cheating offenses.
+ */
 public class AcademicCheating extends Violation {
-    private boolean unauthorizedMaterialsUsed;
-    private boolean collusionInvolved;
+    private String assessmentType;
 
-    /**
-    Parameterized constructor for initializing Academic Cheating violation parameters.
-        @param code                       Violation code.
-        @param title                      Short title of violation.
-        @param description                Detailed description.
-        @param unauthorizedMaterialsUsed  True if forbidden materials were present/used.
-        @param collusionInvolved          True if multiple individuals colluded.
-     */
-    public AcademicCheating(String code, String title, String description,
-                            boolean unauthorizedMaterialsUsed, boolean collusionInvolved) {
-        super(code, title, description);
-        this.unauthorizedMaterialsUsed = unauthorizedMaterialsUsed;
-        this.collusionInvolved = collusionInvolved;
+    public AcademicCheating(String violationCode, String dateOfViolation, String subject, String assessmentType) {
+        super(violationCode, dateOfViolation, subject);
+        this.assessmentType = assessmentType;
     }
 
-    /**
-     Calculates severity score based on cheating specifics.
-     Base severity is 2, increased by factor weights depending on materials and collusion.
-     @return Integer severity score (range 2 - 5).
-     */
+    public String getAssessmentType() { return assessmentType; }
+
     @Override
-    public int calculateSeverityLevel() {
-        int severity = 2; 
-        if (unauthorizedMaterialsUsed) {
-            severity += 2;
+    public String getDescription() {
+        // Simple conditional to return description based on violation code
+        String code = getViolationCode().toUpperCase();
+        if (code.equals("AC-PAM")) {
+            return "Unauthorized possession of academic materials relative to examinations";
+        } else if (code.equals("AC-C1")) {
+            return "Copying from another's exam paper";
+        } else if (code.equals("AC-C2")) {
+            return "Allowing to copy another from own exam paper";
+        } else if (code.equals("AC-P")) {
+            return "Plagiarism";
+        } else if (code.equals("AC-ED")) {
+            return "Unauthorized use of electronic devices during exam";
+        } else if (code.equals("AC-OC")) {
+            return "Cheating during online classes";
+        } else if (code.equals("AC-AI")) {
+            return "Unauthorized AI use to complete academic requirements";
         }
-        if (collusionInvolved) {
-            severity += 1;
-        }
-        return Math.min(severity, 5); 
-    }
-
-    public boolean isUnauthorizedMaterialsUsed() {
-        return unauthorizedMaterialsUsed;
-    }
-
-    public void setUnauthorizedMaterialsUsed(boolean unauthorizedMaterialsUsed) {
-        this.unauthorizedMaterialsUsed = unauthorizedMaterialsUsed;
-    }
-
-    public boolean isCollusionInvolved() {
-        return collusionInvolved;
-    }
-
-    public void setCollusionInvolved(boolean collusionInvolved) {
-        this.collusionInvolved = collusionInvolved;
+        return "Academic Cheating Violation";
     }
 
     @Override
     public String toCSV() {
-        return String.format("CHEATING,%s,%s,%s,%b,%b",
-                getCode(), getTitle(), getDescription(), unauthorizedMaterialsUsed, collusionInvolved);
+        return "CHEATING," + getViolationCode() + "," + getDateOfViolation() + "," + getSubject() + "," + assessmentType;
     }
 }

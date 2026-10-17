@@ -1,147 +1,133 @@
 import java.io.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles file reading and persistence operations for Students and Violation Cases in CSV format.
- * Prevents file corruption and handles missing directory/file scenarios gracefully.
+ * Manages reading and writing Student and ViolationCase data to/from files.
  */
 public class FileManager {
+    private String studentFilePath;
+    private String caseFilePath;
 
-    public static boolean saveStudents(String filePath, List<Student> students) {
-        ensureDirectoryExists(filePath);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (Student student : students) {
-                if (student != null) {
-                    writer.write(student.toCSV());
-                    writer.newLine();
-                }
-            }
-            return true;
-        } catch (IOException e) {
-            System.err.println("[Error] Failed to save student records: " + e.getMessage());
-            return false;
+    public FileManager() {
+        this.studentFilePath = "DATA/students.csv";
+        this.caseFilePath = "DATA/cases.csv";
+        ensureDirectoryExists();
+    }
+
+    public FileManager(String studentFilePath, String caseFilePath) {
+        this.studentFilePath = studentFilePath;
+        this.caseFilePath = caseFilePath;
+        ensureDirectoryExists();
+    }
+
+    private void ensureDirectoryExists() {
+        File dir = new File("DATA");
+        if (!dir.exists()) {
+            dir.mkdirs();
         }
     }
 
-    public static List<Student> loadStudents(String filePath) {
+    public List<Student> loadStudents() {
         List<Student> students = new ArrayList<>();
-        File file = new File(filePath);
-        if (!file.exists()) {
-            return students;
-        }
+        File file = new File(studentFilePath);
+        if (!file.exists()) return students;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                Student student = Student.fromCSV(line);
-                if (student != null) {
-                    students.add(student);
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    students.add(Student.fromCSV(line));
                 }
             }
         } catch (IOException e) {
-            System.err.println("[Error] Failed to read students file: " + e.getMessage());
+            System.out.println("Error reading student file: " + e.getMessage());
         }
         return students;
     }
 
-    public static boolean saveCases(String filePath, List<ViolationCase> cases) {
-        ensureDirectoryExists(filePath);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (ViolationCase vCase : cases) {
-                if (vCase != null) {
-                    writer.write(vCase.toCSV());
-                    writer.newLine();
-                }
+    public void saveStudents(List<Student> students) {
+        ensureDirectoryExists();
+        try (PrintWriter pw = new PrintWriter(new FileWriter(studentFilePath))) {
+            for (Student s : students) {
+                pw.println(s.toCSV());
             }
-            return true;
         } catch (IOException e) {
-            System.err.println("[Error] Failed to save violation cases: " + e.getMessage());
-            return false;
+            System.out.println("Error writing student file: " + e.getMessage());
         }
     }
 
-    public static List<ViolationCase> loadCases(String filePath, List<Student> students) {
+    public List<ViolationCase> loadCases(List<Student> students) {
         List<ViolationCase> cases = new ArrayList<>();
-        File file = new File(filePath);
-        if (!file.exists()) {
-            return cases;
-        }
+        File file = new File(caseFilePath);
+        if (!file.exists()) return cases;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
-                
-                String[] parts = line.split(";");
-                if (parts.length < 6) continue;
+            while ((line = br.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
 
-                String caseId = parts[0].trim();
-                String studentId = parts[1].trim();
-                String violationData = parts[2].trim();
-                String dateStr = parts[3].trim();
-                String sanctionStr = parts[4].trim();
-                boolean resolved = Boolean.parseBoolean(parts[5].trim());
+                    String[] parts = line.split(";");
+                    if (parts.length >= 8) {
+                        String caseId = parts[0];
+                        String studentId = parts[1];
+                        Student student = null;
+                        for (Student s : students) {
+                            if (s.getStudentId().equalsIgnoreCase(studentId)) {
+                                student = s;
+                                break;
+                            }
+                        }
+                        // Parse violation type and details
+                        String violationData = parts[2];
+                        Violation violation = null;
+                        String[] vParts = violationData.split(",");
+                        if (vParts.length >= 4) {
+                            String code = vParts[0];
+                            String date = vParts[1];
+                            String subject = vParts[2];
+                            String extra = vParts[3];
+                            if (code.equals("IPV")) {
+                                violation = new IntellectualPropertyViolation(code, date, subject, extra);
+                            } else {
+                                violation = new AcademicCheating(code, date, subject, extra);
+                            }
+                        }
+                        // Parse sanction if present
+                        Sanction sanction = null;
+                        if (!parts[3].equals("null")) {
+                            String[] sParts = parts[3].split(",");
+                            if (sParts.length >= 3) {
+                                sanction = new Sanction(sParts[0], sParts[1], sParts[2]);
+                            }
+                        }
 
-                // Find corresponding student reference
-                Student studentRef = findStudentById(students, studentId);
+                        String status = parts[4];
+                        String dateReported = parts[5];
+                        String evidenceNotes = parts[6];
+                        String remarks = parts[7];
 
-                // Parse polymorphically created violation object
-                Violation violation = parseViolation(violationData);
-
-                LocalDate date;
-                try {
-                    date = LocalDate.parse(dateStr);
-                } catch (DateTimeParseException e) {
-                    date = LocalDate.now();
+                        if (student != null && violation != null) {
+                            ViolationCase vCase = new ViolationCase(caseId, student, violation, sanction, status, dateReported, evidenceNotes, remarks);
+                            cases.add(vCase);
+                        }
+                    }
                 }
-
-                Sanction sanction = Sanction.fromString(sanctionStr);
-
-                cases.add(new ViolationCase(caseId, studentRef, violation, date, sanction, resolved));
             }
         } catch (IOException e) {
-            System.err.println("[Error] Failed to read cases file: " + e.getMessage());
+            System.out.println("Error reading cases file: " + e.getMessage());
         }
         return cases;
     }
 
-    private static Violation parseViolation(String rawData) {
-        String[] tokens = rawData.split(",");
-        if (tokens.length < 5) return null;
-
-        String type = tokens[0].trim();
-        String code = tokens[1].trim();
-        String title = tokens[2].trim();
-        String desc = tokens[3].trim();
-
-        if ("CHEATING".equalsIgnoreCase(type)) {
-            boolean unauth = Boolean.parseBoolean(tokens[4].trim());
-            boolean coll = tokens.length > 5 && Boolean.parseBoolean(tokens[5].trim());
-            return new AcademicCheating(code, title, desc, unauth, coll);
-        } else if ("IP_VIOLATION".equalsIgnoreCase(type)) {
-            double sim = Double.parseDouble(tokens[4].trim());
-            return new IntellectualPropertyViolation(code, title, desc, sim);
-        }
-        return null;
-    }
-
-    private static Student findStudentById(List<Student> students, String studentId) {
-        for (Student s : students) {
-            if (s.getStudentId().equalsIgnoreCase(studentId)) {
-                return s;
+    public void saveCases(List<ViolationCase> cases) {
+        ensureDirectoryExists();
+        try (PrintWriter pw = new PrintWriter(new FileWriter(caseFilePath))) {
+            for (ViolationCase c : cases) {
+                pw.println(c.toCSV());
             }
-        }
-        return null;
-    }
-
-    private static void ensureDirectoryExists(String filePath) {
-        File file = new File(filePath);
-        File parentDir = file.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
+        } catch (IOException e) {
+            System.out.println("Error writing cases file: " + e.getMessage());
         }
     }
 }

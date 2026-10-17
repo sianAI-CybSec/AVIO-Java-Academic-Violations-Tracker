@@ -1,34 +1,38 @@
-public enum Sanction {
-    // Sanction Constants
-    VERBAL_REPRIMAND("Verbal Reprimand"),
-    WRITTEN_WARNING("Written Warning"),
-    WRITTEN_APOLOGY("Written Apology"),
-    UNDERTAKING("Undertaking"),
-    COMMUNITY_SERVICE("Community Service"),
-    SUSPENSION("Suspension"),
-    EXCLUSION("Exclusion"),
-    EXPULSION("Expulsion");
+/**
+ * Represents a disciplinary sanction imposed on a case.
+ */
+public class Sanction {
+    private String sanctionType;
+    private String dateImposed;
+    private String details;
 
-    /* readable display label for the sanction. */
-    private final String label;
-
-    Sanction(String label) {
-        this.label = label;
+    public Sanction(String sanctionType, String dateImposed, String details) {
+        this.sanctionType = sanctionType;
+        this.dateImposed = dateImposed;
+        this.details = details;
     }
 
-    public String getLabel() {
-        return label;
+    public String getSanctionType() { return sanctionType; }
+    public String getDateImposed() { return dateImposed; }
+    public String getDetails() { return details; }
+
+    public String toCSV() {
+        return sanctionType + "|" + dateImposed + "|" + details;
     }
 
-    public static Sanction fromString(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            return WRITTEN_WARNING;
+    public static Sanction fromCSV(String text) {
+        if (text == null || text.trim().isEmpty() || text.equalsIgnoreCase("NONE")) {
+            return null;
         }
-        for (Sanction s : Sanction.values()) {
-            if (s.name().equalsIgnoreCase(text.trim()) || s.label.equalsIgnoreCase(text.trim())) {
-                return s;
-            }
+        String[] parts = text.split("\\|");
+        if (parts.length < 3) {
+            return new Sanction(parts[0], "N/A", "N/A");
         }
-        return WRITTEN_WARNING;
+        return new Sanction(parts[0], parts[1], parts[2]);
+    }
+
+    @Override
+    public String toString() {
+        return sanctionType + " (Imposed: " + dateImposed + ", Details: " + details + ")";
     }
 }
